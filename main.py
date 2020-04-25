@@ -1,57 +1,65 @@
-import sys
 import matplotlib.pyplot as plt
 
-# get text
-if len(sys.argv) < 2:
-    # when no file given as argument
-    with open(input('Enter file location: '), 'r', encoding='utf8') as file:
-        text = file.read()
 
-else:
-    with open(sys.argv[1], 'r', encoding='utf8') as file:
-        text = file.read()
+# get index with word: occurrences_of_word
+def get_words_dict(text):
+    # splitting at word breaks
+    words_raw = text.split()
 
-# removing useless characters and converting to lowercase
-text = ''.join([i for i in text if i.isalpha() or i == " "]).lower()
-# replacing line breaks
-text = text.replace("\n", " ")
-# splitting at word breaks
-words_raw = text.split()
+    words = {}
+    # adding every wordcount to a dict
+    for word in words_raw:
+        if word in words:
+            words[word] += 1
+        else:
+            words[word] = 1
 
-words = []
+    # sort dict by occurrences of words, most go first
+    return {key: value for key, value in sorted(words.items(), key=lambda item: item[1], reverse=True)}
 
-# adding every word only once to new list
-for word in words_raw:
-    if word not in words:
-        words.append(word)
 
-# counting amount of every word
-words_count = []
-for word in words:
-    words_count.append([word, words_raw.count(word)])
+# format a line for a table
+def format_spaces(string1, string2, total_chars=40, min_spaces=1):
+    num_spaces = total_chars - (len(str(string1)) + min_spaces)
+    # add spaces if there are too few
+    if num_spaces < min_spaces:
+        num_spaces = min_spaces
 
-# create graph
-y_pos = range(0, len(words_count))
-bars = []
-height = []
+    return str(string1) + " " * num_spaces + str(string2)
 
-for word in sorted(words_count, key=lambda l: l[1], reverse=True):
-    bars.append(word[0])
-    height.append(word[1])
 
-# Create bars
-plt.bar(y_pos, height)
+if __name__ == "__main__":
+    # get cipher from file if unavailable
+    input_text = input("paste the text here: ").replace("\n", " ")
+    if input_text == '':
+        file_location = input("file location: ")
+        with open(file_location, encoding='utf-8') as file:
+            input_text = file.read().replace("\n", " ")
 
-# Create names on the x-axis
-# plt.xticks(y_pos, bars, size=7)
+    # removing useless characters and converting to lowercase
+    input_text = ''.join([char for char in input_text if char.isalpha() or char == " "]).lower()
 
-# rotate labels by 90°
-plt.xticks(rotation='vertical')
+    words_dict = get_words_dict(input_text)
 
-for idx, bar in enumerate(bars):
-    if idx >= 10:
-        break
-    print("{}. {}".format(idx + 1, bar))
+    # create graph
+    y_pos = range(0, len(words_dict))
+    bars = []
+    height = []
 
-# Show graphic
-plt.show()
+    # print and save values to graph
+    print(format_spaces("word", "occurrences"))
+    for word_str, word_amount in words_dict.items():
+        print(format_spaces(word_str, word_amount))
+        bars.append(word_str)
+        height.append(word_amount)
+
+    # Create bars
+    plt.bar(y_pos, height)
+
+    # Create names on the x-axis
+    # plt.xticks(y_pos, bars, size=7)
+    # rotate labels by 90°
+    plt.xticks(rotation='vertical')
+
+    # Show graphic
+    plt.show()
